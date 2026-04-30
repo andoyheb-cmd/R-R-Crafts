@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>R&R Crafts — Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --cream: #fdf6ef;
+    --blush: #f4d4c8;
+    --rose: #d4857a;
+    --dusty-rose: #c06b62;
+    --sage: #a8b89a;
+    --sage-dark: #7a9169;
+    --warm-brown: #8b5e52;
+    --text: #3d2b27;
+    --text-light: #7a5a52;
+    --white: #fff;
+    --border: #e8d5cc;
+    --gold: #c9a96e;
+    --green-ok: #6aab74;
+    --yellow-low: #d4a843;
+    --red-out: #c05858;
+    --shadow: 0 4px 20px rgba(139,94,82,0.10);
+    --shadow-lg: 0 8px 40px rgba(139,94,82,0.15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    background: var(--white);
+    border-bottom: 2px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .nav-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; height: 64px;
+  }
+  .nav-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem; font-weight: 700;
+    color: var(--dusty-rose); letter-spacing: 0.01em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-brand span { font-size: 1.5rem; }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    padding: 8px 20px; border-radius: 8px; border: none;
+    background: transparent; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500;
+    color: var(--text-light); transition: all 0.2s;
+  }
+  .nav-tab:hover { background: var(--blush); color: var(--dusty-rose); }
+  .nav-tab.active {
+    background: var(--dusty-rose); color: var(--white);
+  }
+
+  /* PAGES */
+  .page { display: none; max-width: 1200px; margin: 0 auto; padding: 40px 28px 60px; }
+  .page.active { display: block; }
+
+  /* PAGE HEADER */
+  .page-header { margin-bottom: 36px; }
+  .page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem; font-weight: 700; color: var(--dusty-rose);
+    margin-bottom: 6px;
+  }
+  .page-header p { color: var(--text-light); font-size: 0.95rem; }
+
+  /* STAT CARDS */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px; margin-bottom: 36px;
+  }
+  .stat-card {
+    background: var(--white); border-radius: 16px;
+    padding: 24px 26px; border: 1.5px solid var(--border);
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 80px; height: 80px; border-radius: 50%;
+    transform: translate(20px,-20px);
+  }
+  .stat-card.pink::before { background: var(--blush); }
+  .stat-card.sage::before { background: #d4e0cc; }
+  .stat-card.gold::before { background: #f0e4cc; }
+  .stat-card.brown::before { background: #e8d0c8; }
+  .stat-label { font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-light); margin-bottom: 8px; }
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem; font-weight: 700; color: var(--dusty-rose); line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-sub { font-size: 0.8rem; color: var(--text-light); }
+
+  /* INFO CARDS */
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .info-card {
+    background: var(--white); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 20px 22px; box-shadow: var(--shadow);
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .info-icon { font-size: 1.6rem; line-height: 1; flex-shrink: 0; }
+  .info-card h3 { font-size: 0.9rem; font-weight: 600; color: var(--dusty-rose); margin-bottom: 4px; }
+  .info-card p { font-size: 0.82rem; color: var(--text-light); line-height: 1.5; }
+
+  /* DIVIDER */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; font-weight: 600; color: var(--warm-brown);
+    margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1.5px; background: var(--border);
+  }
+
+  /* STATUS BADGE */
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em;
+  }
+  .badge-ok { background: #dff2e2; color: var(--green-ok); }
+  .badge-low { background: #fdf0d5; color: var(--yellow-low); }
+  .badge-out { background: #fde8e8; color: var(--red-out); }
+
+  /* ==================== CALCULATOR ==================== */
+  .calc-wrapper {
+    display: grid; grid-template-columns: 1fr 320px; gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .calc-wrapper { grid-template-columns: 1fr; } }
+  
+  .card {
+    background: var(--white); border: 1.5px solid var(--border);
+    border-radius: 16px; padding: 28px; box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 600; color: var(--warm-brown);
+    margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1.5px solid var(--border);
+  }
+
+  /* Form inputs */
+  label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-light);
+    text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%; padding: 9px 13px; border: 1.5px solid var(--border);
+    border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    color: var(--text); background: var(--cream); transition: border 0.2s;
+    outline: none;
+  }
+  input[type=text]:focus, input[type=number]:focus, select:focus, textarea:focus {
+    border-color: var(--rose); background: var(--white);
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .form-group { margin-bottom: 16px; }
+
+  /* Material rows */
+  .materials-list { margin-top: 8px; }
+  .material-row {
+    display: grid; grid-template-columns: 1fr 90px 90px 32px;
+    gap: 8px; align-items: center; margin-bottom: 8px;
+    padding: 8px 12px; background: var(--cream); border-radius: 10px;
+    border: 1.5px solid var(--border);
+  }
+  .material-row select { padding: 6px 8px; font-size: 0.82rem; }
+  .material-row input { padding: 6px 8px; font-size: 0.82rem; text-align: right; }
+  .material-row .cost-display {
+    font-size: 0.82rem; color: var(--text-light); padding: 6px 8px; text-align: right;
+  }
+  .remove-btn {
+    width: 28px; height: 28px; border-radius: 7px; border: none;
+    background: #fde8e8; color: var(--red-out); cursor: pointer;
+    font-size: 1rem; display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .remove-btn:hover { background: var(--red-out); color: white; }
+  .mat-header {
+    display: grid; grid-template-columns: 1fr 90px 90px 32px;
+    gap: 8px; margin-bottom: 6px;
+  }
+  .mat-header span { font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-light); padding: 0 8px; }
+
+  /* Buttons */
+  .btn {
+    padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 600;
+    transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px;
+  }
+  .btn-primary { background: var(--dusty-rose); color: white; }
+  .btn-primary:hover { background: var(--warm-brown); }
+  .btn-secondary { background: var(--blush); color: var(--dusty-rose); }
+  .btn-secondary:hover { background: var(--rose); color: white; }
+  .btn-sage { background: var(--sage); color: white; }
+  .btn-sage:hover { background: var(--sage-dark); }
+  .btn-sm { padding: 7px 14px; font-size: 0.82rem; }
+  .btn-row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+
+  /* Summary card */
+  .summary-card {
+    background: var(--white); border: 1.5px solid var(--border);
+    border-radius: 16px; padding: 28px; box-shadow: var(--shadow);
+    position: sticky; top: 84px;
+  }
+  .summary-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem;
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .label { color: var(--text-light); }
+  .summary-row .value { font-weight: 600; color: var(--text); }
+  .summary-total {
+    margin-top: 12px; padding: 16px; background: var(--dusty-rose);
+    border-radius: 12px; text-align: center;
+  }
+  .summary-total .t-label { font-size: 0.78rem; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 0.08em; }
+  .summary-total .t-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem; font-weight: 700; color: white;
+  }
+  .profit-row {
+    margin-top: 10px; padding: 12px; background: #dff2e2;
+    border-radius: 10px; text-align: center;
+  }
+  .profit-row .label { font-size: 0.78rem; color: var(--green-ok); font-weight: 600; }
+  .profit-row .value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700; color: var(--sage-dark);
+  }
+
+  /* ==================== INVENTORY ==================== */
+  .inv-controls {
+    display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;
+  }
+  .inv-controls input[type=text] { max-width: 280px; }
+  .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+    background: white; cursor: pointer; font-size: 0.8rem; font-weight: 500;
+    color: var(--text-light); transition: all 0.15s;
+  }
+  .filter-btn:hover { border-color: var(--rose); color: var(--rose); }
+  .filter-btn.active { background: var(--dusty-rose); color: white; border-color: var(--dusty-rose); }
+
+  /* Table */
+  .table-wrapper {
+    background: white; border-radius: 14px; border: 1.5px solid var(--border);
+    overflow: hidden; box-shadow: var(--shadow);
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--blush); }
+  th {
+    padding: 12px 16px; text-align: left;
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--warm-brown);
+  }
+  td { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fdf0ec; }
+  .cat-tag {
+    display: inline-block; padding: 2px 8px; border-radius: 5px;
+    font-size: 0.72rem; font-weight: 600; background: #ede4f8; color: #6b4fa8;
+  }
+  .cat-tag.fuzzy { background: #fde8f0; color: #c0607a; }
+  .cat-tag.satin { background: #e8f0fd; color: #5070c0; }
+  .cat-tag.yarn { background: #f0fde8; color: #50a050; }
+  .cat-tag.box { background: #fdf5e0; color: #c08000; }
+  .cat-tag.opp { background: #e8fdfc; color: #408080; }
+  .cat-tag.ribbon { background: #fce8fd; color: #9050c0; }
+  .cat-tag.other { background: #f0ede8; color: #807060; }
+
+  .qty-cell { font-weight: 600; }
+  .price-cell { font-family: 'DM Sans', sans-serif; color: var(--sage-dark); font-weight: 600; }
+
+  .empty-row td { text-align: center; padding: 48px; color: var(--text-light); font-style: italic; }
+
+  /* ==================== PRINT ==================== */
+  @media print {
+    nav, .btn, .inv-controls, .filter-group { display: none !important; }
+    .page { display: block !important; }
+  }
+
+  /* ==================== MISC ==================== */
+  .decorative-header {
+    background: linear-gradient(135deg, var(--blush) 0%, var(--cream) 60%, #e8f0e4 100%);
+    border-radius: 20px; padding: 36px 40px; margin-bottom: 36px;
+    border: 1.5px solid var(--border); position: relative; overflow: hidden;
+  }
+  .decorative-header::before {
+    content: '🌸'; position: absolute; right: 30px; top: 20px;
+    font-size: 4rem; opacity: 0.15;
+  }
+  .decorative-header::after {
+    content: '✨'; position: absolute; right: 90px; bottom: 20px;
+    font-size: 2.5rem; opacity: 0.15;
+  }
+  .decorative-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem; font-weight: 700; color: var(--dusty-rose); margin-bottom: 6px;
+  }
+  .decorative-header p { color: var(--text-light); font-size: 0.95rem; max-width: 500px; }
+  .decorative-header .updated {
+    margin-top: 14px; font-size: 0.78rem; color: var(--text-light);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .tab-switcher {
+    display: flex; gap: 0; background: var(--cream); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 3px; margin-bottom: 20px; width: fit-content;
+  }
+  .tab-switch {
+    padding: 7px 16px; border-radius: 8px; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500;
+    color: var(--text-light); background: transparent; transition: all 0.15s;
+  }
+  .tab-switch.active { background: var(--dusty-rose); color: white; }
+
+  .add-material-area { margin-top: 12px; padding-top: 12px; border-top: 1.5px dashed var(--border); }
+
+  /* Color dot for inventory */
+  .color-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    display: inline-block; border: 1.5px solid rgba(0,0,0,0.1);
+    vertical-align: middle; margin-right: 6px;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand"><span>🌸</span> R&R Crafts</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('index')">🏠 Home</button>
+      <button class="nav-tab" onclick="showPage('calc')">🧮 Calculator</button>
+      <button class="nav-tab" onclick="showPage('inventory')">📦 Inventory</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ==================== INDEX PAGE ==================== -->
+<div class="page active" id="page-index">
+  <div class="decorative-header">
+    <h1>R&R Crafts</h1>
+    <p>Inventory Management & Product Costing System — handmade with love 🎀</p>
+    <div class="updated">📅 Last Updated: February 26, 2026</div>
+  </div>
+
+  <div class="section-title">📊 Dashboard Overview</div>
+  <div class="stats-grid">
+    <div class="stat-card pink">
+      <div class="stat-label">Total Material Items</div>
+      <div class="stat-value" id="stat-materials">124</div>
+      <div class="stat-sub">Across all categories</div>
+    </div>
+    <div class="stat-card sage">
+      <div class="stat-label">Low Stock Alerts</div>
+      <div class="stat-value" id="stat-lowstock" style="color:var(--yellow-low)">125</div>
+      <div class="stat-sub">Items need restocking</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-label">Finished Goods</div>
+      <div class="stat-value" id="stat-goods">15</div>
+      <div class="stat-sub">Product types tracked</div>
+    </div>
+    <div class="stat-card brown">
+      <div class="stat-label">Material Categories</div>
+      <div class="stat-value">5</div>
+      <div class="stat-sub">Fuzzy Wire, Satin, Yarn, Boxes, OPP</div>
+    </div>
+  </div>
+
+  <div class="section-title">📌 How to Use This System</div>
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-icon">📦</div>
+      <div>
+        <h3>Materials</h3>
+        <p>Browse all raw materials — Fuzzy Wire (DHF/MFW), Satin Ribbons, Yarns, Boxes & OPP Plastic bags. Filter by category or search by name.</p>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon">🧮</div>
+      <div>
+        <h3>Product Calculator</h3>
+        <p>Compute product cost by selecting materials, entering quantities, and setting labor & profit margin. Get your SRP instantly.</p>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon">🌸</div>
+      <div>
+        <h3>Bouquet Calculator</h3>
+        <p>Dedicated costing tool for flower bouquets — choose flowers, wrappers, ribbons, and packaging to get accurate pricing.</p>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon">🚦</div>
+      <div>
+        <h3>Stock Status Colors</h3>
+        <p><span class="badge badge-ok">✓ OK</span> Enough stock &nbsp; <span class="badge badge-low">⚠ Low Stock</span> ≤5 units &nbsp; <span class="badge badge-out">✕ Out</span> 0 units</p>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon">💰</div>
+      <div>
+        <h3>Price Guide</h3>
+        <p>All material prices are embedded in the calculator. Costs update automatically based on your selected materials and quantities.</p>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon">✨</div>
+      <div>
+        <h3>Finished Goods</h3>
+        <p>Products tracked: Bouquets (Small/Medium/Large/Mixed), Headbands, Hair Clips, Earrings, Keychains, Coin Purse, Gift Sets & Custom Orders.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:36px;" class="section-title">🎀 Quick Access</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <button class="btn btn-primary" onclick="showPage('calc')">🧮 Open Calculator</button>
+    <button class="btn btn-secondary" onclick="showPage('inventory')">📦 View Inventory</button>
+    <button class="btn btn-sage" onclick="showPage('calc');document.getElementById('calc-mode-bouquet').click()">🌸 Bouquet Costing</button>
+  </div>
+</div>
+
+<!-- ==================== CALCULATOR PAGE ==================== -->
+<div class="page" id="page-calc">
+  <div class="page-header">
+    <h1>🧮 Product Costing Calculator</h1>
+    <p>Compute your product SRP based on materials, labor, and profit margin.</p>
+  </div>
+
+  <div class="tab-switcher">
+    <button class="tab-switch active" id="calc-mode-product" onclick="switchCalcMode('product')">📦 Product Calculator</button>
+    <button class="tab-switch" id="calc-mode-bouquet" onclick="switchCalcMode('bouquet')">🌸 Bouquet Calculator</button>
+  </div>
+
+  <div class="calc-wrapper">
+    <!-- LEFT: Input -->
+    <div>
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">📝 Project Details</div>
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0">
+            <label id="project-label">Project / Product Name</label>
+            <input type="text" id="inp-project" placeholder="e.g. Fuzzy Wire Headband">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Order Quantity (pcs)</label>
+            <input type="number" id="inp-qty" value="1" min="1" oninput="recalc()">
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:14px;margin-bottom:0">
+          <label>Description / Notes</label>
+          <textarea id="inp-desc" placeholder="e.g. Colors, size, customer name..."></textarea>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">🧵 Cost of Materials</div>
+        <div class="mat-header">
+          <span>Material</span>
+          <span style="text-align:right">Unit Cost</span>
+          <span style="text-align:right">Qty</span>
+          <span></span>
+        </div>
+        <div class="materials-list" id="materials-list">
+          <!-- rows injected by JS -->
+        </div>
+        <div class="add-material-area">
+          <button class="btn btn-secondary btn-sm" onclick="addMaterialRow()">+ Add Material</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⚙️ Production Costs</div>
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0">
+            <label>Labor Cost (₱ per pc)</label>
+            <input type="number" id="inp-labor" value="0" min="0" step="0.01" oninput="recalc()">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Indirect Cost Rate</label>
+            <select id="inp-indirect" onchange="recalc()">
+              <option value="0.3" selected>30% of materials</option>
+              <option value="0.2">20% of materials</option>
+              <option value="0.1">10% of materials</option>
+              <option value="0">None</option>
+              <option value="custom">Custom ₱ amount</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" id="indirect-custom-group" style="display:none;margin-top:10px;margin-bottom:0">
+          <label>Custom Indirect Cost (₱ per pc)</label>
+          <input type="number" id="inp-indirect-custom" value="0" min="0" step="0.01" oninput="recalc()">
+        </div>
+        <div class="form-row" style="margin-top:14px;margin-bottom:0">
+          <div class="form-group" style="margin-bottom:0">
+            <label>Tax (%)</label>
+            <input type="number" id="inp-tax" value="0" min="0" step="0.01" oninput="recalc()">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Profit Margin (%)</label>
+            <input type="number" id="inp-profit" value="90" min="0" step="1" oninput="recalc()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Summary -->
+    <div>
+      <div class="summary-card">
+        <div class="card-title">💰 Cost Summary</div>
+        <div class="summary-row"><span class="label">Materials Total</span><span class="value" id="s-materials">₱0.00</span></div>
+        <div class="summary-row"><span class="label">Labor Cost</span><span class="value" id="s-labor">₱0.00</span></div>
+        <div class="summary-row"><span class="label">Indirect Cost</span><span class="value" id="s-indirect">₱0.00</span></div>
+        <div class="summary-row"><span class="label">Tax</span><span class="value" id="s-tax">₱0.00</span></div>
+        <div class="summary-row"><span class="label">Production Cost (per pc)</span><span class="value" id="s-prod">₱0.00</span></div>
+        <div class="summary-row"><span class="label">Profit Margin</span><span class="value" id="s-margin">₱0.00</span></div>
+        <div class="summary-total">
+          <div class="t-label">Suggested Retail Price (SRP)</div>
+          <div class="t-value" id="s-srp">₱0.00</div>
+        </div>
+        <div class="profit-row" id="profit-box">
+          <div class="label">Total Net Profit (×<span id="s-qty-display">1</span> pcs)</div>
+          <div class="value" id="s-profit">₱0.00</div>
+        </div>
+        <div class="btn-row" style="margin-top:16px;">
+          <button class="btn btn-primary" onclick="printCalc()" style="flex:1">🖨️ Print</button>
+          <button class="btn btn-secondary" onclick="clearCalc()" style="flex:1">🗑️ Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== INVENTORY PAGE ==================== -->
+<div class="page" id="page-inventory">
+  <div class="page-header">
+    <h1>📦 Materials Inventory</h1>
+    <p>Browse all raw materials with unit costs. All quantities are currently at 0 — update as you restock.</p>
+  </div>
+
+  <div class="inv-controls">
+    <input type="text" id="inv-search" placeholder="🔍 Search material..." oninput="filterInventory()" style="max-width:260px;">
+    <div class="filter-group">
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('fuzzy',this)">🌸 Fuzzy Wire</button>
+      <button class="filter-btn" onclick="setFilter('satin',this)">🎀 Satin Ribbon</button>
+      <button class="filter-btn" onclick="setFilter('yarn',this)">🧶 Yarn / Crochet</button>
+      <button class="filter-btn" onclick="setFilter('box',this)">📦 Boxes</button>
+      <button class="filter-btn" onclick="setFilter('opp',this)">🗂️ OPP Plastic</button>
+      <button class="filter-btn" onclick="setFilter('ribbon',this)">🎗️ Other Ribbons</button>
+      <button class="filter-btn" onclick="setFilter('other',this)">✨ Other</button>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table id="inv-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Item Name</th>
+          <th>Unit</th>
+          <th>Lot Size</th>
+          <th>Lot Price (₱)</th>
+          <th>Cost per Unit (₱)</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="inv-tbody">
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ===================================================
+// DATA
+// ===================================================
+const MATERIALS = [
+  // Fuzzy Wire
+  {cat:'fuzzy', name:'Fuzzy Wire (DHF/MFW)', unit:'pcs', lot:'100 pcs', lotPrice:32, costPerUnit:0.32},
+  // Yarn / Crochet
+  {cat:'yarn', name:'8 Ply Milk Cotton', unit:'g', lot:'100 g', lotPrice:54, costPerUnit:0.54},
+  {cat:'yarn', name:'5 Ply Milk Cotton', unit:'g', lot:'50 g', lotPrice:25, costPerUnit:0.50},
+  {cat:'yarn', name:'4 Ply Milk Cotton', unit:'g', lot:'50 g', lotPrice:25, costPerUnit:0.50},
+  {cat:'yarn', name:'5 Ply Mixed Color Yarn', unit:'g', lot:'50 g', lotPrice:33, costPerUnit:0.66},
+  {cat:'yarn', name:'Chunky Yarn', unit:'g', lot:'100 g', lotPrice:61, costPerUnit:0.61},
+  {cat:'yarn', name:'Mini Chenille Yarn', unit:'g', lot:'50 g', lotPrice:63, costPerUnit:1.26},
+  {cat:'yarn', name:'Fiber Cotton', unit:'g', lot:'1 kg (1000g)', lotPrice:150, costPerUnit:0.15},
+  // Satin Ribbon
+  {cat:'satin', name:'4 cm Satin Ribbon', unit:'yards', lot:'25 yards', lotPrice:30, costPerUnit:1.20},
+  {cat:'satin', name:'2.5 cm Satin Ribbon', unit:'yards', lot:'25 yards', lotPrice:25, costPerUnit:1.00},
+  {cat:'satin', name:'6 mm Satin Ribbon', unit:'yards', lot:'25 yards', lotPrice:8, costPerUnit:0.32},
+  // Ribbons (other)
+  {cat:'ribbon', name:'2 cm Just For You Ribbon', unit:'yards', lot:'35 yards', lotPrice:35, costPerUnit:1.00},
+  {cat:'ribbon', name:'Fishtail Ribbon', unit:'M', lot:'9 M', lotPrice:30, costPerUnit:3.33},
+  // Flowers / craft
+  {cat:'other', name:'Stamen', unit:'pcs', lot:'400 pcs', lotPrice:45, costPerUnit:0.1125},
+  {cat:'other', name:'Floral Tape', unit:'M', lot:'27 M', lotPrice:54, costPerUnit:2.00},
+  {cat:'other', name:'Floral Stick 40cm', unit:'pcs', lot:'100 pcs', lotPrice:159, costPerUnit:1.59},
+  {cat:'other', name:'Hard Felt A4 Size', unit:'pc', lot:'1 pc', lotPrice:12, costPerUnit:12.00},
+  {cat:'other', name:'Bead Chain Keychain', unit:'pcs', lot:'10 pcs', lotPrice:12, costPerUnit:1.20},
+  {cat:'other', name:'Keychain Ring with Color', unit:'pcs', lot:'5 pcs', lotPrice:70, costPerUnit:14.00},
+  {cat:'other', name:'Safety Eyes (Any Size)', unit:'pcs', lot:'100 pcs', lotPrice:100, costPerUnit:1.00},
+  {cat:'other', name:'Glue', unit:'ml', lot:'50 ml', lotPrice:120, costPerUnit:2.40},
+  {cat:'other', name:'Keychain Rings', unit:'pcs', lot:'100 pcs', lotPrice:60, costPerUnit:0.60},
+  {cat:'other', name:'Jump Rings (Any Size)', unit:'pcs', lot:'200 pcs', lotPrice:60, costPerUnit:0.30},
+  {cat:'other', name:'Glue Stick', unit:'pc', lot:'1 pc', lotPrice:4, costPerUnit:4.00},
+  {cat:'other', name:'Mini Bag', unit:'pc', lot:'1 pc', lotPrice:50, costPerUnit:50.00},
+  // Wrappers
+  {cat:'other', name:'Gold Lining Wrapper', unit:'pcs', lot:'20 pcs', lotPrice:70, costPerUnit:3.50},
+  {cat:'other', name:'Korean Web Wrapper', unit:'50cm', lot:'50 cm', lotPrice:145, costPerUnit:2.90},
+  {cat:'other', name:'Snow Dot Wrapper', unit:'50cm', lot:'50 cm', lotPrice:90, costPerUnit:1.80},
+  {cat:'other', name:'Wrapper Korean', unit:'pcs', lot:'20 pcs', lotPrice:70, costPerUnit:3.50},
+  {cat:'other', name:'Two Sided Color Wrapper', unit:'pcs', lot:'20 pcs', lotPrice:130, costPerUnit:6.50},
+  {cat:'other', name:'Gradient Wrapper', unit:'pcs', lot:'20 pcs', lotPrice:115, costPerUnit:5.75},
+  {cat:'other', name:'Single Bag', unit:'pcs', lot:'50 pcs', lotPrice:99, costPerUnit:1.98},
+  // Flowers
+  {cat:'other', name:'Satin Rose Flower (4cm)', unit:'flower', lot:'1 flower', lotPrice:9.20, costPerUnit:9.20},
+  {cat:'other', name:'Satin Rose Flower (6cm)', unit:'flower', lot:'1 flower', lotPrice:0, costPerUnit:0},
+  {cat:'other', name:'Satin Rose Flower (8cm)', unit:'flower', lot:'1 flower', lotPrice:0, costPerUnit:0},
+  {cat:'other', name:'Satin Tulip', unit:'flower', lot:'1 flower', lotPrice:0, costPerUnit:0},
+  // Boxes
+  {cat:'box', name:'Box T0 (16×10×3cm)', unit:'pc', lot:'5 pcs', lotPrice:24, costPerUnit:4.80},
+  {cat:'box', name:'Box T0 Plus (17×10×5cm)', unit:'pc', lot:'5 pcs', lotPrice:39, costPerUnit:7.80},
+  {cat:'box', name:'Box T1 (15×15×5cm)', unit:'pc', lot:'5 pcs', lotPrice:34, costPerUnit:6.80},
+  {cat:'box', name:'Box T1 Plus (15×15×10cm)', unit:'pc', lot:'5 pcs', lotPrice:77, costPerUnit:15.40},
+  {cat:'box', name:'Box T2 (20×14×4cm)', unit:'pc', lot:'5 pcs', lotPrice:39, costPerUnit:7.80},
+  {cat:'box', name:'Box T3 (26.5×16×4.7cm)', unit:'pc', lot:'5 pcs', lotPrice:54, costPerUnit:10.80},
+  {cat:'box', name:'Box T4 (25×20.5×7cm)', unit:'pc', lot:'5 pcs', lotPrice:68, costPerUnit:13.60},
+  {cat:'box', name:'Box T5 (32×21.5×5cm)', unit:'pc', lot:'5 pcs', lotPrice:58, costPerUnit:11.60},
+  {cat:'box', name:'Box T6 (30×19×6cm)', unit:'pc', lot:'5 pcs', lotPrice:63, costPerUnit:12.60},
+  {cat:'box', name:'Box T8 (23.5×17×5cm)', unit:'pc', lot:'5 pcs', lotPrice:49, costPerUnit:9.80},
+  {cat:'box', name:'Box T9 (20×20×12cm)', unit:'pc', lot:'5 pcs', lotPrice:105, costPerUnit:21.00},
+  {cat:'box', name:'Box T10 (33×24×8cm)', unit:'pc', lot:'5 pcs', lotPrice:115, costPerUnit:23.00},
+  {cat:'box', name:'Box T12 (38×30×6cm)', unit:'pc', lot:'5 pcs', lotPrice:87, costPerUnit:17.40},
+  {cat:'box', name:'Box T13 (20×14×8cm)', unit:'pc', lot:'5 pcs', lotPrice:63, costPerUnit:12.60},
+  {cat:'box', name:'Box T14 (25×25×10cm)', unit:'pc', lot:'5 pcs', lotPrice:110, costPerUnit:22.00},
+  {cat:'box', name:'Box T15 (36×25×12cm)', unit:'pc', lot:'5 pcs', lotPrice:147, costPerUnit:29.40},
+  {cat:'box', name:'Box T17 (42×30×6cm)', unit:'pc', lot:'5 pcs', lotPrice:156, costPerUnit:31.20},
+  // OPP Plastic
+  {cat:'opp', name:'OPP Plastic K1 (2.8×5.3")', unit:'pc', lot:'100 pcs', lotPrice:46, costPerUnit:0.46},
+  {cat:'opp', name:'OPP Plastic K2 (3.1×5.2")', unit:'pc', lot:'100 pcs', lotPrice:50, costPerUnit:0.50},
+  {cat:'opp', name:'OPP Plastic K3 (4×7")', unit:'pc', lot:'100 pcs', lotPrice:59, costPerUnit:0.59},
+  {cat:'opp', name:'OPP Plastic K4 (5.2×7.5")', unit:'pc', lot:'100 pcs', lotPrice:73, costPerUnit:0.73},
+  {cat:'opp', name:'OPP Plastic K5 (1.7×6.6")', unit:'pc', lot:'100 pcs', lotPrice:46, costPerUnit:0.46},
+  {cat:'opp', name:'OPP Plastic K6 (3×9.6")', unit:'pc', lot:'100 pcs', lotPrice:59, costPerUnit:0.59},
+  {cat:'opp', name:'OPP Plastic K8 (4.7×9")', unit:'pc', lot:'100 pcs', lotPrice:92, costPerUnit:0.92},
+  {cat:'opp', name:'OPP Plastic K9 (4.1×9.6")', unit:'pc', lot:'100 pcs', lotPrice:73, costPerUnit:0.73},
+  {cat:'opp', name:'OPP Plastic K10 (6×6")', unit:'pc', lot:'100 pcs', lotPrice:82, costPerUnit:0.82},
+  {cat:'opp', name:'OPP Plastic K11 (2.7×7")', unit:'pc', lot:'100 pcs', lotPrice:59, costPerUnit:0.59},
+  {cat:'opp', name:'OPP Plastic K12 (2.5×10")', unit:'pc', lot:'100 pcs', lotPrice:59, costPerUnit:0.59},
+  {cat:'opp', name:'OPP Plastic K14 (2×2.3")', unit:'pc', lot:'100 pcs', lotPrice:40, costPerUnit:0.40},
+  {cat:'opp', name:'OPP Plastic K15 (2.5×2.7")', unit:'pc', lot:'100 pcs', lotPrice:45, costPerUnit:0.45},
+  {cat:'opp', name:'OPP Plastic K18 (3.2×4")', unit:'pc', lot:'100 pcs', lotPrice:50, costPerUnit:0.50},
+  {cat:'opp', name:'OPP Plastic K19 (3.9×3.9")', unit:'pc', lot:'100 pcs', lotPrice:55, costPerUnit:0.55},
+  {cat:'opp', name:'OPP Plastic K20 (7×10")', unit:'pc', lot:'100 pcs', lotPrice:101, costPerUnit:1.01},
+  {cat:'opp', name:'OPP Plastic K22 (2.2×8")', unit:'pc', lot:'100 pcs', lotPrice:59, costPerUnit:0.59},
+  {cat:'opp', name:'OPP Plastic K23 (5.2×10.5")', unit:'pc', lot:'100 pcs', lotPrice:92, costPerUnit:0.92},
+  {cat:'opp', name:'OPP Plastic K37 (2×5")', unit:'pc', lot:'100 pcs', lotPrice:45, costPerUnit:0.45},
+  {cat:'opp', name:'OPP Plastic K38 (2.3×3.5")', unit:'pc', lot:'100 pcs', lotPrice:46, costPerUnit:0.46},
+  {cat:'opp', name:'OPP Plastic K40 (5×14")', unit:'pc', lot:'100 pcs', lotPrice:101, costPerUnit:1.01},
+  {cat:'opp', name:'OPP Plastic K42 (5.6×9.2")', unit:'pc', lot:'100 pcs', lotPrice:92, costPerUnit:0.92},
+  {cat:'opp', name:'OPP Plastic K53 (5.2×3.5")', unit:'pc', lot:'100 pcs', lotPrice:60, costPerUnit:0.60},
+  {cat:'opp', name:'OPP Plastic K57 (3.5×8")', unit:'pc', lot:'100 pcs', lotPrice:59, costPerUnit:0.59},
+];
+
+// ===================================================
+// NAV
+// ===================================================
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  const map = {index:0, calc:1, inventory:2};
+  tabs[map[name]].classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ===================================================
+// CALCULATOR
+// ===================================================
+let calcMode = 'product';
+let rowId = 0;
+
+function switchCalcMode(mode) {
+  calcMode = mode;
+  document.getElementById('calc-mode-product').classList.toggle('active', mode==='product');
+  document.getElementById('calc-mode-bouquet').classList.toggle('active', mode==='bouquet');
+  document.getElementById('project-label').textContent = mode === 'bouquet' ? 'Bouquet Type' : 'Project / Product Name';
+  document.getElementById('inp-project').placeholder = mode === 'bouquet' ? 'e.g. Small / Medium / Large / Mixed' : 'e.g. Fuzzy Wire Headband';
+}
+
+function addMaterialRow(defaultMat='', defaultQty=0) {
+  const list = document.getElementById('materials-list');
+  const id = rowId++;
+  const row = document.createElement('div');
+  row.className = 'material-row';
+  row.id = 'mat-row-'+id;
+
+  const options = MATERIALS.map(m =>
+    `<option value="${m.name}" data-cost="${m.costPerUnit}" data-unit="${m.unit}"${m.name===defaultMat?' selected':''}>${m.name} (₱${m.costPerUnit.toFixed(4)}/${m.unit})</option>`
+  ).join('');
+
+  row.innerHTML = `
+    <select onchange="updateRowCost(${id})" id="mat-sel-${id}">
+      <option value="">— Select Material —</option>
+      ${options}
+    </select>
+    <input type="text" readonly id="mat-cost-${id}" placeholder="₱0.00" style="background:#f9f0ec;font-weight:600;color:var(--sage-dark);">
+    <input type="number" min="0" step="0.01" value="${defaultQty||''}" id="mat-qty-${id}" placeholder="Qty" oninput="recalc()">
+    <button class="remove-btn" onclick="removeMaterialRow(${id})">×</button>
+  `;
+  list.appendChild(row);
+  if (defaultMat) updateRowCost(id);
+  recalc();
+}
+
+function updateRowCost(id) {
+  const sel = document.getElementById('mat-sel-'+id);
+  const opt = sel.options[sel.selectedIndex];
+  const cost = opt ? parseFloat(opt.dataset.cost)||0 : 0;
+  const unit = opt ? opt.dataset.unit : '';
+  const inp = document.getElementById('mat-cost-'+id);
+  inp.value = cost > 0 ? `₱${cost.toFixed(4)}/${unit}` : '';
+  recalc();
+}
+
+function removeMaterialRow(id) {
+  const row = document.getElementById('mat-row-'+id);
+  if (row) row.remove();
+  recalc();
+}
+
+function recalc() {
+  // Gather material rows
+  let matTotal = 0;
+  document.querySelectorAll('.material-row').forEach(row => {
+    const id = row.id.replace('mat-row-','');
+    const sel = document.getElementById('mat-sel-'+id);
+    const qty = parseFloat(document.getElementById('mat-qty-'+id).value)||0;
+    if (!sel) return;
+    const opt = sel.options[sel.selectedIndex];
+    const cost = opt ? parseFloat(opt.dataset.cost)||0 : 0;
+    matTotal += cost * qty;
+  });
+
+  const qty = Math.max(1, parseInt(document.getElementById('inp-qty').value)||1);
+  const labor = parseFloat(document.getElementById('inp-labor').value)||0;
+  const taxPct = parseFloat(document.getElementById('inp-tax').value)||0;
+  const profitPct = parseFloat(document.getElementById('inp-profit').value)||0;
+  const indirectSel = document.getElementById('inp-indirect').value;
+
+  let indirect = 0;
+  if (indirectSel === 'custom') {
+    indirect = parseFloat(document.getElementById('inp-indirect-custom').value)||0;
+    document.getElementById('indirect-custom-group').style.display = 'block';
+  } else {
+    indirect = matTotal * parseFloat(indirectSel);
+    document.getElementById('indirect-custom-group').style.display = 'none';
+  }
+
+  const tax = matTotal * (taxPct / 100);
+  const prodCost = matTotal + labor + indirect + tax;
+  const margin = prodCost * (profitPct / 100);
+  const srp = prodCost + margin;
+  const totalProfit = margin * qty;
+
+  document.getElementById('s-materials').textContent = `₱${matTotal.toFixed(2)}`;
+  document.getElementById('s-labor').textContent = `₱${labor.toFixed(2)}`;
+  document.getElementById('s-indirect').textContent = `₱${indirect.toFixed(2)}`;
+  document.getElementById('s-tax').textContent = `₱${tax.toFixed(2)}`;
+  document.getElementById('s-prod').textContent = `₱${prodCost.toFixed(2)}`;
+  document.getElementById('s-margin').textContent = `₱${margin.toFixed(2)}`;
+  document.getElementById('s-srp').textContent = `₱${srp.toFixed(2)}`;
+  document.getElementById('s-profit').textContent = `₱${totalProfit.toFixed(2)}`;
+  document.getElementById('s-qty-display').textContent = qty;
+}
+
+function clearCalc() {
+  document.getElementById('inp-project').value = '';
+  document.getElementById('inp-qty').value = 1;
+  document.getElementById('inp-desc').value = '';
+  document.getElementById('inp-labor').value = 0;
+  document.getElementById('inp-indirect').value = '0.3';
+  document.getElementById('inp-tax').value = 0;
+  document.getElementById('inp-profit').value = 90;
+  document.getElementById('materials-list').innerHTML = '';
+  rowId = 0;
+  recalc();
+}
+
+function printCalc() {
+  window.print();
+}
+
+// ===================================================
+// INVENTORY
+// ===================================================
+let activeFilter = 'all';
+
+function renderInventory() {
+  const search = (document.getElementById('inv-search').value || '').toLowerCase();
+  const tbody = document.getElementById('inv-tbody');
+  tbody.innerHTML = '';
+  let count = 0;
+
+  MATERIALS.forEach(m => {
+    if (activeFilter !== 'all' && m.cat !== activeFilter) return;
+    if (search && !m.name.toLowerCase().includes(search)) return;
+    count++;
+    const catLabels = {
+      fuzzy: {label:'🌸 Fuzzy Wire', cls:'fuzzy'},
+      satin: {label:'🎀 Satin Ribbon', cls:'satin'},
+      yarn: {label:'🧶 Yarn', cls:'yarn'},
+      box: {label:'📦 Box', cls:'box'},
+      opp: {label:'🗂️ OPP Plastic', cls:'opp'},
+      ribbon: {label:'🎗️ Ribbon', cls:'ribbon'},
+      other: {label:'✨ Other', cls:'other'},
+    };
+    const cl = catLabels[m.cat] || {label:m.cat, cls:'other'};
+    const status = m.costPerUnit > 0
+      ? `<span class="badge badge-ok">✓ Priced</span>`
+      : `<span class="badge badge-low">⚠ TBD</span>`;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="cat-tag ${cl.cls}">${cl.label}</span></td>
+      <td><strong>${m.name}</strong></td>
+      <td style="color:var(--text-light)">${m.unit}</td>
+      <td style="color:var(--text-light)">${m.lot}</td>
+      <td class="price-cell">₱${m.lotPrice.toFixed(2)}</td>
+      <td class="price-cell">₱${m.costPerUnit.toFixed(4)}</td>
+      <td>${status}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  if (count === 0) {
+    const tr = document.createElement('tr');
+    tr.className = 'empty-row';
+    tr.innerHTML = '<td colspan="7">No materials found matching your filter.</td>';
+    tbody.appendChild(tr);
+  }
+}
+
+function filterInventory() { renderInventory(); }
+
+function setFilter(cat, btn) {
+  activeFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderInventory();
+}
+
+// ===================================================
+// INIT
+// ===================================================
+document.addEventListener('DOMContentLoaded', () => {
+  renderInventory();
+  // Add a default material row
+  addMaterialRow();
+  recalc();
+});
+</script>
+</body>
+</html>
